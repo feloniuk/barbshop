@@ -133,6 +133,159 @@ class PanelController extends Controller
         Request::setTitle('Login');
     }
 
+    public function scanerAction()
+    {
+        Model::import('panel/shops');
+        Model::import('panel/team');
+
+        // Фильтры
+        $date_from = get('date_from') ?: date('Y-m-01');
+        $date_to = get('date_to') ?: date('Y-m-d');
+        $shop_id = get('shop_id');
+        $user_id = get('user_id');
+
+        // Получаем магазины для фильтра
+        $this->view->shops = ShopsModel::getAll();
+
+        // Получаем пользователей для фильтра
+        $this->view->users = TeamModel::getActive(" AND `role` IN ('master', 'admin', 'moder')");
+
+        // Статистика на сегодня
+        $this->view->todayPresent = PanelModel::getTodayPresent();
+        
+        // Общая статистика
+        $this->view->totalWorkDays = PanelModel::getTotalWorkDays($date_from, $date_to);
+        $this->view->totalHours = PanelModel::getTotalHours($date_from, $date_to);
+        $this->view->avgHours = PanelModel::getAverageHours($date_from, $date_to);
+
+        // Сводная статистика по работникам
+        $this->view->summaryStats = PanelModel::getSummaryStats($date_from, $date_to, $shop_id, $user_id);
+
+        // Детальные записи
+        $this->view->attendanceRecords = PanelModel::getDetailedRecords($date_from, $date_to, $shop_id, $user_id);
+
+        Request::setTitle('Статистика відвідуваності');
+    }
+
+    public function scanAction()
+    {
+        Request::ajaxPart();
+
+        $barcode = post('barcode');
+        $shop_id = post('shop_id', 'int');
+
+        if (!$barcode) {
+            Request::returnError('Штрих-код не вказано');
+        }
+
+        Model::import('panel/attendance');
+        Model::import('panel/team');
+
+        // Находим пользователя по штрих-коду
+        $user = TeamModel::getUserByBarcode($barcode);
+
+        if (!$user) {
+            Request::returnError('Працівника з таким штрих-кодом не знайдено');
+        }
+
+        // Записываем посещение
+        $result = PanelModel::recordScan($user->id, $shop_id);
+
+        if ($result['success']) {
+            Request::addResponse('success', true);
+            Request::addResponse('data', [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->firstname . ' ' . $user->lastname,
+                    'position' => $user->job_title,
+                    'shop' => $result['shop_name']
+                ],
+                'type' => $result['type'],
+                'time' => date('H:i:s')
+            ]);
+        } else {
+            Request::returnError($result['error']);
+        }
+
+        Request::endAjax();
+    }
+
+    public function user_detailsAction()
+    {
+        Request::ajaxPart();
+
+        $user_id = intval(Request::getUri(0));
+        $date_from = get('date_from') ?: date('Y-m-01');
+        $date_to = get('date_to') ?: date('Y-m-d');
+
+        Model::import('panel/attendance');
+        Model::import('panel/team');
+
+        $this->view->user = TeamModel::getUser($user_id);
+        $this->view->userStats = PanelModel::getUserStats($user_id, $date_from, $date_to);
+        $this->view->monthlyData = PanelModel::getUserMonthlyData($user_id, $date_from, $date_to);
+
+        Request::addResponse('html', '#userDetailsContent', $this->getView());
+    }
+
+    public function exportAction()
+    {
+        $date_from = get('date_from') ?: date('Y-m-01');
+        $date_to = get('date_to') ?: date('Y-m-d');
+        $shop_id = get('shop_id');
+        $user_id = get('user_id');
+
+        Model::import('panel/attendance');
+        $data = PanelModel::getExportData($date_from, $date_to, $shop_id, $user_id);
+
+        // Створюємо Excel файл
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="attendance_' . date('Y-m-d') . '.xls"');
+        header('Cache-Control: max-age=0');
+
+        echo '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+        echo '<head><meta charset="UTF-8"></head>';
+        echo '<body>';
+        echo '<table border="1">';
+        echo '<tr>
+            <th>Дата</th>
+            <th>Працівник</th>
+            <th>Барбершоп</th>
+            <th>Прихід</th>
+            <th>Вихід</th>
+            <th>Відпрацьовано годин</th>
+            <th>Статус</th>
+        </tr>';
+
+        foreach ($data as $row) {
+            echo '<tr>';
+            echo '<td>' . date('d.m.Y', strtotime($row->date)) . '</td>';
+            echo '<td>' . $row->firstname . ' ' . $row->lastname . '</td>';
+            echo '<td>' . ($row->shop_name ?: '-') . '</td>';
+            echo '<td>' . ($row->check_in ? date('H:i', strtotime($row->check_in)) : '-') . '</td>';
+            echo '<td>' . ($row->check_out ? date('H:i', strtotime($row->check_out)) : '-') . '</td>';
+            echo '<td>' . ($row->hours_worked ?: '-') . '</td>';
+            echo '<td>' . $this->getStatusText($row->status) . '</td>';
+            echo '</tr>';
+        }
+
+        echo '</table>';
+        echo '</body>';
+        echo '</html>';
+        exit;
+    }
+
+    private function getStatusText($status)
+    {
+        $statuses = [
+            'present' => 'Присутній',
+            'late' => 'Запізнення',
+            'absent' => 'Відсутній',
+            'day_off' => 'Вихідний'
+        ];
+        return $statuses[$status] ?? $status;
+    }
+
     public function logoutAction()
     {
         PageModel::closeSession(User::getTokenCookie());

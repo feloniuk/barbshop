@@ -94,6 +94,17 @@
 </li>
 <?php } ?>
 
+<?php if (in_array(User::getRole(), ['moder', 'admin', 'superadmin'])): ?>
+<li class="menu">
+    <a href="{URL:panel/scaner}" class="dropdown-toggle">
+        <div class="">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+            <span>Відвідуваність</span>
+        </div>
+    </a>
+</li>
+<?php endif; ?>
+
 <?php if(User::checkRole('admin') || User::checkRole('superadmin') || User::checkRole('moder')) { ?>
   <li class="menu">
     <a <?= $show = activeIF(['services'], false, 'data-active="true" aria-expanded="false"',

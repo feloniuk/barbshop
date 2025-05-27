@@ -372,26 +372,26 @@
         }
 
         function recordAttendance(worker) {
-            // Тут буде AJAX запит до сервера для запису в БД
-            console.log('Записуємо відвідування:', worker);
-            
-            // Симуляція запиту до сервера
-            fetch('/api/attendance', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    worker_id: worker.id,
-                    timestamp: new Date().toISOString(),
-                    action: 'check_in' // або 'check_out'
-                })
-            }).then(response => {
+        // AJAX запит до сервера для запису в БД
+        console.log('Записуємо відвідування:', worker);
+        
+        fetch('/panel/attendance/scan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'barcode=' + worker.id + '&shop_id=' + (worker.shop_id || 1)
+        }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
                 console.log('Відвідування записано');
-            }).catch(error => {
-                console.error('Помилка запису:', error);
-            });
-        }
+            } else {
+                console.error('Помилка запису:', data.error);
+            }
+        }).catch(error => {
+            console.error('Помилка запису:', error);
+        });
+    }
 
         // Обробники подій
         document.getElementById('startBtn').addEventListener('click', initScanner);

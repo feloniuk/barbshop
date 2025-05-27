@@ -122,6 +122,15 @@ class TeamModel extends Model
         return $user;
     }
 
+    public static function getUserByBarcode($barcode)
+    {
+        $sql = "SELECT * FROM `users` 
+                WHERE `barcode` = '$barcode' 
+                AND `deleted` = 'no' 
+                LIMIT 1";
+        return self::fetch(self::query($sql));
+    }
+
     public static function getUsersWhere($where)
     {
         $sql = "
