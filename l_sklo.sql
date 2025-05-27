@@ -1305,3 +1305,43 @@ BEGIN
     RETURN v_stats;
 END$$
 DELIMITER ;
+
+-- Таблица для записи посещаемости
+CREATE TABLE IF NOT EXISTS `attendance` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `user_id` int(10) unsigned NOT NULL,
+    `shop_id` int(10) unsigned DEFAULT NULL,
+    `type` enum('check_in','check_out') DEFAULT 'check_in',
+    `scan_time` datetime NOT NULL,
+    `date` date NOT NULL,
+    `ip` varchar(45) DEFAULT NULL,
+    `device` varchar(255) DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    KEY `user_id` (`user_id`),
+    KEY `date` (`date`),
+    KEY `shop_id` (`shop_id`),
+    KEY `idx_user_date` (`user_id`, `date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Связь пользователей с магазинами (если еще нет)
+CREATE TABLE IF NOT EXISTS `users_shops` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `user_id` int(10) unsigned NOT NULL,
+    `shop_id` int(10) unsigned NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `user_shop_unique` (`user_id`, `shop_id`),
+    KEY `user_id` (`user_id`),
+    KEY `shop_id` (`shop_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Добавляем поля в таблицу users для штрих-кода (если их нет)
+ALTER TABLE `users` 
+ADD COLUMN IF NOT EXISTS `barcode` varchar(50) DEFAULT NULL AFTER `sort`,
+ADD UNIQUE KEY IF NOT EXISTS `barcode_unique` (`barcode`);
+
+-- Генерируем штрих-коды для существующих пользователей
+UPDATE `users` 
+SET `barcode` = CONCAT('USER-', LPAD(id, 6, '0'))
+WHERE `barcode` IS NULL 
+AND `role` IN ('master', 'admin', 'moder')
+AND `deleted` = 'no';

@@ -61,6 +61,25 @@ class TeamModel extends Model
         return self::fetchAll(self::query($sql));
     }
 
+    /**
+     * Get user by $id
+     * @param $id
+     * @return array|object|null
+     */
+    public static function getUser($id)
+    {
+        $sql = "
+            SELECT *
+            FROM `users`
+            WHERE `id` = '$id'
+            LIMIT 1
+        ";
+
+        $user = self::fetch(self::query($sql));
+        $user = self::relationship($user, 'users', 'services');
+        $user = self::relationship($user, 'users', 'shops');
+        return $user;
+    }
 
     /**
      * @param $email
@@ -87,12 +106,12 @@ class TeamModel extends Model
      * Get all users
      * @return array
      */
-    public static function getAllUsers($where = '')
+    public static function getAllUsers()
     {
         $sql = "
             SELECT *
             FROM `users`
-            WHERE `deleted` = 'no' {$where}
+            WHERE `deleted` = 'no'
         ";
 
         $user = self::fetchAll(self::query($sql));
@@ -120,7 +139,33 @@ class TeamModel extends Model
         return $user;
     }
 
-   
+    public static function getUsersByShopsWhere($where)
+    {
+        $sql = "
+            SELECT *
+            FROM `users_shops`
+            WHERE $where
+        ";
+
+        return self::fetchAll(self::query($sql));
+    }
+
+    public static function getUserWhere($where)
+    {
+        $sql = "
+            SELECT *
+            FROM `users`
+            WHERE `deleted` = 'no'
+            AND $where
+            LIMIT 1
+        ";
+
+        $user = self::fetch(self::query($sql));
+        $user = self::relationship($user, 'users', 'services');
+        $user = self::relationship($user, 'users', 'shops');
+        return $user;
+    }
+
     public static function getArchived()
     {
         $sql = "
@@ -133,7 +178,18 @@ class TeamModel extends Model
         return self::fetchAll(self::query($sql));
     }
 
-   
+    public static function countUsers($where = false)
+    {
+        $sql = "
+            SELECT COUNT(`id`)
+            FROM `users`
+        ";
+
+        if ($where)
+            $sql .= "WHERE ".$where;
+
+        return self::fetch(self::query($sql), 'row')[0];
+    }
 
     public static function getBiggestSort()
     {
@@ -215,196 +271,44 @@ class TeamModel extends Model
         return self::fetch(self::query($sql), 'row')[0];
     }
 
-    
-
-
-
-
-
-     
-
     /**
-     * Get active users
-     * @param string $where
-     * @param string $order_by
-     * @param string $order_way
-     * @param int $start
-     * @param int $limit
-     * @return array
+     * @param false $where
+     * @param false $orderby
+     * @param false $sort
+     * @param false $start
+     * @param false $end
+     * @return array|mixed
      */
-    public static function getActive($where = "", $order_by = 'id', $order_way = 'DESC', $start = -1, $limit = -1)
+    public static function getActive($where = '', $orderby = false, $sort = false, $start = false, $end = false)
     {
-        $limitStr = generateLimitStr($start, $limit);
-
-        $sql = "
+        $sql = " 
             SELECT *
             FROM `users`
             WHERE `deleted` = 'no'
-            $where
-            ORDER BY `$order_by` $order_way
-            $limitStr
-        ";
+            $where";
 
-        $users = self::fetchAll(self::query($sql));
-        
-        // Добавляем информацию о магазинах для каждого пользователя
-        if ($users) {
-            foreach ($users as $user) {
-                $user->shops = self::getUserShopsData($user->id);
-                $user->shop_ids = array_column($user->shops, 'id');
+        if ($orderby && $sort) {
+            if ($sort == 'asc' && $orderby == 'sort') {
+                $sql .= " ORDER BY `sort` = 0, `sort`";
+            } else {
+                $sql .= " ORDER BY $orderby $sort ";
             }
         }
 
-        return $users;
-    }
-
-    /**
-     * Get user by id
-     * @param $id
-     * @return array|object|null
-     */
-    public static function getUser($id)
-    {
-        $sql = "
-            SELECT *
-            FROM `users`
-            WHERE `id` = '$id'
-            LIMIT 1
-        ";
-
-        $user = self::fetch(self::query($sql));
-        
-        if ($user) {
-            $user->shops = self::getUserShopsData($user->id);
-            $user->shop_ids = array_column($user->shops, 'id');
-            $user->services = self::getUserServices($user->id);
+        if ($start !== false) {
+            $sql .= "LIMIT $start";
+            if ($end) {
+                $sql .= ", $end";
+            }
         }
 
-        return $user;
-    }
-
-    /**
-     * Get user by where condition
-     * @param $where
-     * @return array|object|null
-     */
-    public static function getUserWhere($where)
-    {
-        $sql = "
-            SELECT *
-            FROM `users`
-            WHERE $where
-            LIMIT 1
-        ";
-
-        $user = self::fetch(self::query($sql));
+        $user = self::fetchAll(self::query($sql));
         
-        if ($user) {
-            $user->shops = self::getUserShopsData($user->id);
-            $user->shop_ids = array_column($user->shops, 'id');
-            $user->services = self::getUserServices($user->id);
-        }
-
+        $user = self::relationship($user, 'users', 'services');
+        $user = self::relationship($user, 'users', 'shops');
         return $user;
     }
-
-    /**
-     * Get user shops data
-     * @param $userId
-     * @return array
-     */
-    public static function getUserShopsData($userId)
-    {
-        $sql = "
-            SELECT s.*
-            FROM `shops` s
-            INNER JOIN `users_shops` us ON s.id = us.shop_id
-            WHERE us.user_id = '$userId'
-            AND s.deleted = 'no'
-        ";
-
-        return self::fetchAll(self::query($sql));
-    }
-
-    /**
-     * Get user services
-     * @param $userId
-     * @return array
-     */
-    public static function getUserServices($userId)
-    {
-        $sql = "
-            SELECT s.*
-            FROM `services` s
-            INNER JOIN `users_services` us ON s.id = us.service_id
-            WHERE us.user_id = '$userId'
-            AND s.deleted = 'no'
-        ";
-
-        return self::fetchAll(self::query($sql));
-    }
-
-    /**
-     * Get users by shop
-     * @param $shopId
-     * @return array
-     */
-    public static function getUsersByShop($shopId)
-    {
-        $sql = "
-            SELECT u.*
-            FROM `users` u
-            INNER JOIN `users_shops` us ON u.id = us.user_id
-            WHERE us.shop_id = '$shopId'
-            AND u.deleted = 'no'
-        ";
-
-        return self::fetchAll(self::query($sql));
-    }
-
-    /**
-     * Get users by shops where condition
-     * @param $where
-     * @return array
-     */
-    public static function getUsersByShopsWhere($where)
-    {
-        $sql = "
-            SELECT DISTINCT us.*
-            FROM `users_shops` us
-            WHERE $where
-        ";
-
-        return self::fetchAll(self::query($sql));
-    }
-
-    /**
-     * Count users
-     * @param string $where
-     * @return mixed
-     */
-    public static function countUsers($where = "")
-    {
-        $sql = "
-            SELECT COUNT(*)
-            FROM `users`
-            WHERE `deleted` = 'no'
-            $where
-        ";
-
-        return self::fetch(self::query($sql), 'row')[0];
-    }
-
-    /**
-     * Update user by ID
-     * @param $id
-     * @param $data
-     * @return string
-     */
-    public static function updateUserByID($id, $data)
-    {
-        return self::update('users', $data, "`id` = '$id' LIMIT 1");
-    }
+    
 }
 
 /* End of file */

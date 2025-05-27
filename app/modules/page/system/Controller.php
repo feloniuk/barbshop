@@ -10,99 +10,10 @@ class PageController extends Controller
 
         $this->view->shops = ShopsModel::getAll("AND `posted` = 'yes'");
     }
+
     public function skanerAction()
     {
-        Model::import('panel/team');
-        Model::import('panel/shops');
         
-        // Получаем всех мастеров для генерации штрих-кодов
-        $this->view->masters = TeamModel::getAllUsers(" AND `role` IN ('master', 'admin', 'moder') AND `deleted` = 'no'");
-        
-        // Добавляем информацию о магазинах для каждого мастера
-        if ($this->view->masters) {
-            foreach ($this->view->masters as $master) {
-                $master->shops = TeamModel::getUserShops($master->id);
-            }
-        }
-        
-        $this->view->shops = ShopsModel::getAll(" AND `posted` = 'yes'");
-    }
-    
-    public function attendance_recordAction()
-    {
-        Request::ajaxPart();
-        
-        $userId = post('user_id', 'int');
-        $shopId = post('shop_id', 'int');
-        
-        if (!$userId) {
-            Request::addResponse('success', false);
-            Request::addResponse('error', 'Невірний ID працівника');
-            Request::endAjax();
-        }
-        
-        // Импортируем необходимые модели
-        Model::import('panel/team');
-        Model::import('panel/shops');
-        
-        // Получаем пользователя через правильный метод
-        $user = TeamModel::getUser($userId);
-        
-        if (!$user || $user->deleted == 'yes') {
-            Request::addResponse('success', false);
-            Request::addResponse('error', 'Працівника з ID ' . $userId . ' не знайдено');
-            Request::endAjax();
-        }
-        
-        // Проверяем последнюю запись
-        $today = date('Y-m-d');
-        $lastRecord = Model::fetch(Model::select('attendance', "`user_id` = '$userId' AND `date` = '$today' ORDER BY `scan_time` DESC LIMIT 1"));
-        
-        // Определяем тип записи
-        if (!$lastRecord || $lastRecord->type == 'check_out') {
-            $type = 'check_in';
-        } else {
-            $type = 'check_out';
-        }
-        
-        // Записываем посещаемость
-        $data = [
-            'user_id' => $userId,
-            'shop_id' => $shopId ?: 1,
-            'type' => $type,
-            'scan_time' => date('Y-m-d H:i:s'),
-            'date' => $today,
-            'ip' => getIP(),
-            'device' => substr($_SERVER['HTTP_USER_AGENT'], 0, 255)
-        ];
-        
-        $result = Model::insert('attendance', $data);
-        $insertId = Model::insertID();
-        
-        if (!$result && $insertId) {
-            // Получаем информацию о магазине
-            if ($shopId) {
-                $shop = ShopsModel::get($shopId);
-            } else {
-                $shops = ShopsModel::getAll();
-                $shop = !empty($shops) ? $shops[0] : null;
-            }
-            
-            Request::addResponse('success', true);
-            Request::addResponse('user', [
-                'id' => $user->id,
-                'name' => $user->firstname . ' ' . $user->lastname,
-                'position' => $user->job_title ?: 'Майстер',
-                'shop' => $shop ? $shop->title : 'Барбершоп'
-            ]);
-            Request::addResponse('type', $type);
-            Request::addResponse('time', date('d.m.Y H:i:s'));
-        } else {
-            Request::addResponse('success', false);
-            Request::addResponse('error', 'Помилка запису в базу даних: ' . Model::error());
-        }
-        
-        Request::endAjax();
     }
 
     public function appointmentsAction()
