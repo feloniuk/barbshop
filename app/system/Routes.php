@@ -14,6 +14,7 @@ Route::set('app/data/cvs/{slug}', 'page@file_download')->name('file_download');
 Route::set('es.png', 'page@email_status')->name('e_image');
 Route::set('sitemap.xml$', 'page@sitemap')->name('sitemap');
 Route::set('appointments', 'page@appointments')->name('appointments');
+Route::set('attendance_record', 'page@attendance_record')->name('attendance_record');
 
 Route::set('shops/{slug}', 'page@shops')->name('shops');
 Route::set('barber/{slug}', 'page@barber')->name('barber');

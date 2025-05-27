@@ -82,6 +82,8 @@ class PanelController extends Controller
         Request::setTitle('Dashboard');
     }
 
+    
+
     public function scadaAction()
     {
         

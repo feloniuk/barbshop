@@ -1,7 +1,7 @@
 <?php
 class PageModel extends Model
 {
-    public $version = 4;
+    public $version = 5;
 
     /**
      * Method module_install start automatically if it not exist in `modules` table at first importing of model
@@ -226,6 +226,31 @@ class PageModel extends Model
                 `alt` varchar(255) DEFAULT NULL,
                 PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 AUTO_INCREMENT=1 COLLATE=utf8mb4_unicode_ci ;";
+             case '4':
+                $queries[] =  "CREATE TABLE IF NOT EXISTS `modules` (
+                    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+                    `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
+                    `version` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
+                    `visible` varchar(10) DEFAULT 'no',
+                    `time` int(10) unsigned NOT NULL,
+                    PRIMARY KEY (`id`)
+                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 AUTO_INCREMENT=1 COLLATE=utf8mb4_unicode_ci ;
+                 
+                 
+                 CREATE TABLE IF NOT EXISTS `attendance` (
+                    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+                    `user_id` int(10) unsigned NOT NULL,
+                    `shop_id` int(10) unsigned DEFAULT NULL,
+                    `type` enum('check_in','check_out') DEFAULT 'check_in',
+                    `scan_time` datetime NOT NULL,
+                    `date` date NOT NULL,
+                    `ip` varchar(45) DEFAULT NULL,
+                    `device` varchar(255) DEFAULT NULL,
+                    PRIMARY KEY (`id`),
+                    KEY `user_id` (`user_id`),
+                    KEY `date` (`date`),
+                    KEY `shop_id` (`shop_id`)
+                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 AUTO_INCREMENT=1 COLLATE=utf8mb4_unicode_ci ;";
 //            case '1':
 //                $queries[] = "ALTER TABLE `vacancies_analytics` CHANGE COLUMN `vacancy_id` `entity_id` int(10) unsigned DEFAULT 0;";
 //                $queries[] = "ALTER TABLE `blogs_analytics` CHANGE COLUMN `blog_id` `entity_id` int(10) unsigned DEFAULT 0;";
