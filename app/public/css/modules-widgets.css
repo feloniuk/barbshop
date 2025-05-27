@@ -1,0 +1,59 @@
+.layout-spacing {
+    padding-bottom: 30px
+}
+
+.sales .widget {
+    position: relative;
+    padding: 20px;
+    border-radius: 8px;
+    border: none;
+    background: #fff
+}
+
+.sales .widget .widget-heading {
+    margin-bottom: 15px
+}
+
+.sales .widget h5 {
+    font-weight: 700;
+    font-size: 19px;
+    letter-spacing: 0px;
+    margin-bottom: 0;
+    color: #515365
+}
+
+.widget-two .w-chart {
+    display: flex;
+    justify-content: space-between;
+    flex-flow: wrap;
+    flex-wrap: wrap
+}
+
+.widget-two .w-chart .w-chart-section {
+    width: 50%;
+    padding: 0 20px 16px
+}
+
+.widget-two .w-chart .w-chart-section-2 {
+    width: 100%;
+    padding: 0 20px 16px
+}
+
+.widget-two .w-chart .w-chart-section .w-detail {
+    position: absolute;
+    color: #fff
+}
+
+.widget-two .w-chart .w-chart-section .w-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 0
+}
+
+.widget-two .w-chart .w-chart-section .w-stats {
+    color: #f8538d;
+    font-size: 20px;
+    letter-spacing: 1px;
+    margin-bottom: 0;
+    font-weight: 700
+}

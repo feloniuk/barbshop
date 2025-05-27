@@ -1,0 +1,59 @@
+[
+  {
+    "name": "create:module",
+    "description": "Module creation command",
+    "example": "php command create:module <name module> <name table> <panel/modules/>",
+    "options": [
+      {
+        "name": "<name module>",
+        "description": "\t\tModule name"
+      },
+      {
+        "name": "<name table>",
+        "description": "\t\tTable name"
+      },
+      {
+        "name": "<panel/modules/>",
+        "description": "\tPath where the module will be created"
+      }
+    ]
+  },
+  {
+    "name": "create:content_module",
+    "description": "Module creation command",
+    "example": "php command create:content_module <name module> <name table> <panel/modules/>",
+    "options": [
+      {
+        "name": "<name module>",
+        "description": "\t\tModule name"
+      },
+      {
+        "name": "<name table>",
+        "description": "\t\tTable name"
+      },
+      {
+        "name": "<panel/modules/>",
+        "description": "\tPath where the module will be created"
+      }
+    ]
+  },
+  {
+    "name": "create:full_module",
+    "description": "Full Module creation command",
+    "example": "php command create:module <name module> <name table> <panel/modules/>",
+    "options": [
+      {
+        "name": "<name module>",
+        "description": "\t\tModule name"
+      },
+      {
+        "name": "<name table>",
+        "description": "\t\tTable name"
+      },
+      {
+        "name": "<panel/modules/>",
+        "description": "\tPath where the module will be created"
+      }
+    ]
+  }
+]
