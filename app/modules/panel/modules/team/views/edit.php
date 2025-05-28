@@ -88,7 +88,7 @@
                                     <div class="form-group">
                                         <label for="role">Role</label>
                                         <select class="form-control" name="role" id="role" required onchange="toggleServicesBox()">
-                                            <option value="admin" <?= checkOptionValue(post('role'), 'admin', $this->user->role); ?>>Admin</option>
+                                            <option value="admin" <?= checkOptionValue(post('role'), 'admin', $this->user->role); ?>>Director</option>
                                             <option value="moder" <?= checkOptionValue(post('role'), 'moder', $this->user->role); ?>>Manager</option>
                                             <option value="master" <?= checkOptionValue(post('role'), 'master', $this->user->role); ?>>Master</option>
                                         </select>

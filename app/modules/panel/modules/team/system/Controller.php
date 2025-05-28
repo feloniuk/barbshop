@@ -163,9 +163,6 @@ class TeamController extends Controller
             $this->validatePost('meta_title',   'Meta Title',       'trim|min_length[0]|max_length[200]');
             $this->validatePost('meta_keywords','Meta Keywords',    'trim|min_length[0]|max_length[200]');
             $this->validatePost('meta_desc',    'Meta Description', 'trim|min_length[0]|max_length[200]');
-            $this->validatePost('linkedin',     'LinkedIn URL',     'trim|min_length[0]|max_length[100]|url');
-            $this->validatePost('twitter',      'Twitter URL',      'trim|min_length[0]|max_length[100]|url');
-            $this->validatePost('skype',        'Skype',            'trim|min_length[0]|max_length[100]');
             $this->validatePost('slug',         'Slug',             'required|trim|min_length[1]|max_length[100]');
             $this->validatePost('image',        'Image',            'trim|min_length[1]|max_length[100]');
 
@@ -182,10 +179,7 @@ class TeamController extends Controller
                     'meta_keywords' => post('meta_keywords'),
                     'meta_desc'     => post('meta_desc'),
                     //'for_fun'       => post('for_fun'),
-                    'linkedin'      => processUrl(post('linkedin')),
-                    'twitter'       => processUrl(post('twitter')),
                     'display_team'  => post('display_team') ?: 'no',
-                    'skype'         => post('skype'),
                     'image'         => post('image'),
                     'slug'          => Model::createIdentifier('users', post('slug'), 'slug', $this->view->user->id),
                 ];

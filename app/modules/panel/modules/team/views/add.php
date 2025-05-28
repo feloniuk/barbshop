@@ -41,7 +41,7 @@
                     <div class="form-group">
                         <label for="role">Role</label>
                         <select class="form-control" name="role" id="role" required>
-                            <option value="admin">Admin</option>
+                            <option value="admin">Director</option>
                           <option value="moder" >Manager</option>
                           <option value="master" >Master</option>
                         </select>
